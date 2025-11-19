@@ -1,0 +1,36 @@
+name: compile typst
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Typst
+        uses: typst-community/setup-typst@v4
+        with:
+          version: latest
+
+      - name: Compile main.typ to main.pdf
+        run: typst compile main.typ main.pdf
+
+      - name: Move artifacts
+        run: mkdir -p ./public && cp main.pdf ./public/
+
+      - name: Deploy PDF to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages
+          keep_files: false
