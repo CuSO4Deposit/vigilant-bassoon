@@ -1,7 +1,7 @@
 #import "@preview/frame-it:2.0.0": divide, frame-style, styles
 #import "lib.typ": background, definition, example
 
-#set text(font: "Source Han Serif SC")
+#set text(font: "LXGW WenKai")
 #set page(numbering: "1/1")
 #show: frame-style(styles.boxy)
 

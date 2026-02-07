@@ -16,13 +16,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - uses: fontist/setup-fontist@v2
+      - run: fontist install "LXGW WenKai"
+
+
       - name: Setup Typst
         uses: typst-community/setup-typst@v4
         with:
           version: latest
 
       - name: Compile main.typ to main.pdf
-        run: typst compile main.typ main.pdf
+        run: typst compile main.typ main.pdf --font-path ~/.fontist/fonts
 
       - name: Move artifacts
         run: mkdir -p ./public && cp main.pdf ./public/

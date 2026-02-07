@@ -39,6 +39,7 @@
           fontPaths = [
             # Add paths to fonts here
             # "${pkgs.roboto}/share/fonts/truetype"
+            "${pkgs.lxgw-wenkai}/share/fonts/truetype"
           ];
 
           virtualPaths = [
