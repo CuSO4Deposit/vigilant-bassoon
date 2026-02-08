@@ -1,5 +1,10 @@
 #import "@preview/frame-it:2.0.0": divide, frame-style, styles
-#import "lib.typ": background, backgroundBase, definition, example, invariant
+#import "@preview/cetz:0.3.4"
+
+#import "lib.typ": (
+  adt, algorithm, background, backgroundBase, definition, example, invariant,
+  operation,
+)
 
 #set text(font: "LXGW WenKai", 12pt)
 #set page(numbering: "1/1")
@@ -25,6 +30,19 @@
 #definition(
   numbering: none,
 )[定义][这是一个定义。#divide() 通常底下会有一句人话版。]
+
+#algorithm(numbering: none)[算法][$O(f(n))$][
+  算法相关的东西
+]
+
+#adt(
+  name: "某个数据结构的名字",
+  methods: [
+    #operation(numbering: none)[
+      某个方法的名字
+    ][$O(f(n))$][这个方法的介绍]
+  ],
+)
 
 #pagebreak()
 
@@ -236,7 +254,7 @@ a[2][0] + a[2][1] + a[2][2] = a[6] + a[7] + a[8]
   ]
 ]
 
-#example[矩阵乘法][
+#example[矩阵乘法][$O(n^3)$][
   以这个算法为例子，分析它的时间复杂度。
 
   ```python
@@ -249,4 +267,195 @@ a[2][0] + a[2][1] + a[2][2] = a[6] + a[7] + a[8]
   ```
 
   这里的基本语句是乘法和赋值那句，所以 $ T(n) = n^3 = O(n^3). $
+]
+
+= 串
+
+串也被翻译成字符串，它也是一个特殊的线性表。
+（Recall：栈和队列是被 ban 掉了某些操作的线性表）
+串是要求数据元素都得是字符的线性表。
+#text(size: 10pt)[后文中使用 $Sigma$ 代表字符的集合。]
+
+做这个抽象我觉得有三个原因：
+- 字符串这个东西比较常用；
+- 字符串有一些很常用的操作不是线性表的基本操作。比如子串匹配。
+- 处理字符和处理数值在计算机上的实现不同，因此会引入新的存储结构。
+
+#definition[串][
+  *串*是由零个或多个字符组成的有限序列。一般记为：
+  $ s = a_1 a_2 dots a_n. (n >= 0) $
+  若串由零个字符组成，称为*空串*，后文中记为 $s = emptyset$。
+
+  #divide()
+
+  重点就是 0+ 个字符（0 个也算），有限（不可以无限长），
+  序列（有顺序，和集合相对）。
+]
+
+#definition[子串][
+  串里任意个连续的字符组成的子序列称为该串的子串。
+]
+
+#adt(
+  name: "串",
+  elements: [$D = {a_i | a_i in Sigma}, i = 1, dots, n, n >= 0.$],
+  relations: [和线性表一样],
+  methods: [
+    #operation[`s.copy() -> str`][$O(n)$][
+      复制自己得到一个新串。
+    ]
+    #operation[`s.compare(t: str) -> int`][$O(n)$][
+      比较自己和另一个串的大小。返回它们差了多远。
+      #show: frame-style(styles.boxy)
+      #background[字典序][
+        先定义字符的顺序：`0 < 1 < ... < 9 < A < ... < Z < a < ... < z`。
+
+        字符串的序关系是：从最前面的字符开始比，
+        一直比到第一个不一样的字符，这时候谁的这个字符大谁就大。
+        如果有一个字符串更短，先结束了（即它是另一个的前缀），那先结束的那个小。
+        比如：apple < apples, apple < applf.
+      ]
+      #show: frame-style(styles.thmbox)
+    ]
+    #operation[`s.length() -> int`][$O(n)$][
+      返回自己的长度。
+    ]
+    #operation[`s.concat(s2: str) -> str`][$O(n + m)$][
+      返回自己和另一个串的拼接。
+    ]
+  ],
+)
+
+== 存储结构
+
+首先串是特殊的线性表，所以和线性表一样有很基本的顺序存储和链式存储。
+
+不过由于链式存储的时候如果一个节点只存一个字符那也太浪费空间了，
+很多时候链串里的一个节点可以放好几个字符。这是通常线性表不会做的。
+
+== 子串匹配
+
+经常会遇到一个问题就是一个字符串是不是另一个字符串的子串。
+
+这时候这个拿来检验的子串也叫做模式 (pattern) 串。
+
+例子：在主串 `ABABABC` 中找是否存在子串 `ABABC`。
+
+#algorithm[BF 算法进行子串匹配][$O(m * n)$][
+  把子串和主串从第一位开始对齐，依次往后比，
+  出现失配的时候，就把子串往右挪一次再比。
+
+  直到如果某次子串全匹配了就是存在，如果到最后都没全匹配就是不存在。
+
+  ```
+  a b a b a b c
+  a b a b c
+  = = = = ^
+
+  a b a b a b c
+    a b a b c
+    ^
+
+  a b a b a b c
+      a b a b c
+      = = = = =
+  ```
+]
+
+#algorithm[KMP 算法][$O(m + n)$][
+  别的和 BF 一样，但是如果出现不匹配的时候，利用之前比过的信息。
+
+  根据模式串的结构，在失配的位置，模式串的末尾和开头都是 `AB`，
+  那这个时候，虽然失配了，但是我们知道主串失配前那个位置都是匹配的，
+  也就是我们知道模式串的开头肯定和主串失配前的位置是匹配的。
+
+  所以模式串可以往后退很多，不用只挪一个格子。
+
+  ```
+   a b  [a b] a b c
+  [a b] [a b] c
+   = =   = =  ^
+
+  a b [a b] a b c
+      [a b] a b c
+            = = =
+  ```
+]
+
+KMP 算法为了实现我们刚刚说到的这个直觉，引入了一个 `next` 数组。
+这个数组是用来分析模式串的结构的：当模式串在第 `j` 个位置失配时，
+前面的子串里，最长的一模一样的头尾有多长。
+
+对于上面的例子 `ABABC`，
+`next = [0, 0, 0, 1, 2]`，
+也就是说，如果在 `C` 失配了，可以直接把模式串的 `[2]` 位置给对到主串的指针上去。
+
+== 更强大的子串匹配
+
+有些时候搜索的要求更高，不一定是子串，
+但是可能是有一些特殊的结构的。
+
+#example[找到文本里的取件码][
+  取件码短信格式还挺多的。
+  - 【菜鸟驿站】您的快递已到达，取件码 9-2-4015，请及时领取。
+  - [顺丰速运] 凭 1-2-3018 到店取件。
+
+  我们只知道取件码的格式是 `数字-数字-4个数字`。
+  事实上有人创造出了一种表示这种需求的语言，称为*正则表达式*。
+]
+
+#background[正则表达式][
+  每一条正则表达式代表着一类可能的字符串。刚才的取件码可以被表示为：
+  `\d-\d-\d{4}`，其中 `\d` 表示数字，`{4}` 表示前边的东西要出现 4 次。
+
+  在实现的时候，上面的这个正则表达式会被转换成这样的一个状态机：
+
+  #import "@preview/cetz:0.3.4"
+
+  #cetz.canvas({
+    import cetz.draw: *
+
+    set-style(
+      circle: (radius: 0.4),
+      line: (mark: (end: ">"), stroke: 0.5pt),
+      content: (padding: .1),
+    )
+
+    let state(pos, lbl, name, is_final: false) = {
+      group(name: name, {
+        circle(pos, name: "c", stroke: if is_final { 2pt } else { 0.5pt })
+        content("c", lbl)
+      })
+    }
+
+    state((0, 0), [S0], "s0")
+    state((2, 0), [S1], "s1")
+    state((4, 0), [S2], "s2")
+    state((6, 0), [S3], "s3")
+    state((8, 0), [S4], "s4")
+
+    line("s0", "s1", name: "l1")
+    content("l1", [digit], anchor: "south")
+    line("s1", "s2", name: "l2")
+    content("l2", [-], anchor: "south")
+    line("s2", "s3", name: "l3")
+    content("l3", [digit], anchor: "south")
+    line("s3", "s4", name: "l4")
+    content("l4", [-], anchor: "south")
+
+    state((8, -2), [S5], "s5")
+    state((6, -2), [S6], "s6")
+    state((4, -2), [S7], "s7")
+    state((2, -2), [S8], "s8", is_final: true)
+
+    line("s4", "s5", name: "l_turn")
+    content("l_turn", [digit], anchor: "west")
+
+    line("s5", "s6", name: "l5")
+    content("l5", [digit], anchor: "north")
+    line("s6", "s7", name: "l6")
+    content("l6", [digit], anchor: "north")
+    line("s7", "s8", name: "l7")
+    content("l7", [digit], anchor: "north")
+  })
 ]
