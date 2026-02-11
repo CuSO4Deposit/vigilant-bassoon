@@ -65,3 +65,5 @@
     #methods
   ]
 }
+
+#let todo(content) = text(fill: red, 20pt)[#content]
